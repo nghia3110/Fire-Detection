@@ -6,10 +6,21 @@ from werkzeug.utils import secure_filename
 import threading
 import winsound
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 
 app = Flask(__name__, static_url_path='/static')
 model = YOLO('best.pt')
+
+# EMAIL CONFIGURATION (Hard-coded)
+EMAIL_SENDER = "nghiaxu3110@gmail.com"  # Thay bằng email của bạn
+EMAIL_PASSWORD = "nkbj rcmt clcf uust"    # Thay bằng App Password của Gmail
+EMAIL_RECEIVER = "tranviethungpv@gmail.com"   # Thay bằng email người nhận
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
 
 # Configuration for file uploads
 UPLOAD_FOLDER = 'uploads'
@@ -32,6 +43,10 @@ active_cameras = {}  # {camera_id: {'frame': frame, 'is_active': bool, 'ip': str
 camera_lock = threading.Lock()
 camera_counter = 0
 
+# Email alert tracking - separate cooldown for each source
+email_cooldowns = {}  # {source_label: last_sent_time}
+email_cooldown_duration = timedelta(minutes=30)  # 30 phút cooldown
+
 # Create folders if they don't exist
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -42,8 +57,76 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def send_fire_alert_email(image_path=None, source="Unknown"):
+    """Send email alert when fire is detected with 30-minute cooldown per source"""
+    global email_cooldowns
+    
+    # Check cooldown for this specific source
+    current_time = datetime.now()
+    if source in email_cooldowns:
+        time_since_last_email = current_time - email_cooldowns[source]
+        if time_since_last_email < email_cooldown_duration:
+            remaining_time = email_cooldown_duration - time_since_last_email
+            print(f"⏳ Email cooldown active for '{source}'. Next email in {remaining_time}")
+            return False
+    
+    try:
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_SENDER
+        msg['To'] = EMAIL_RECEIVER
+        msg['Subject'] = f'🔥 CẢNH BÁO CHÁY - {current_time.strftime("%Y-%m-%d %H:%M:%S")}'
+        
+        # Email body
+        body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif;">
+            <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%); padding: 30px; border-radius: 10px;">
+                <h1 style="color: white; text-align: center;">🚨 CẢNH BÁO PHÁT HIỆN CHÁY 🚨</h1>
+            </div>
+            <div style="padding: 20px; background: #f9f9f9; margin-top: 20px; border-radius: 10px;">
+                <p style="font-size: 18px;"><strong>⏰ Thời gian:</strong> {current_time.strftime("%Y-%m-%d %H:%M:%S")}</p>
+                <p style="font-size: 18px;"><strong>📍 Nguồn:</strong> {source}</p>
+                <p style="font-size: 18px;"><strong>⚠️ Trạng thái:</strong> <span style="color: red; font-weight: bold;">PHÁT HIỆN LỬA</span></p>
+                <hr>
+                <p style="font-size: 16px; color: #666;">
+                    Hệ thống AI đã phát hiện dấu hiệu cháy. Vui lòng kiểm tra ngay lập tức!
+                </p>
+                <p style="font-size: 14px; color: #999; margin-top: 30px;">
+                    Email tiếp theo cho nguồn này sẽ được gửi sau 30 phút nếu vẫn phát hiện cháy.
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg.attach(MIMEText(body, 'html'))
+        
+        # Attach image if provided
+        if image_path and os.path.exists(image_path):
+            with open(image_path, 'rb') as f:
+                img_data = f.read()
+                image = MIMEImage(img_data, name=os.path.basename(image_path))
+                msg.attach(image)
+        
+        # Send email
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        
+        # Update last sent time for this specific source
+        email_cooldowns[source] = current_time
+        print(f"✅ Fire alert email sent successfully to {EMAIL_RECEIVER} for source: {source}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error sending email: {e}")
+        return False
+
 def save_fire_detection_image(frame, boxes, source_label=""):
-    """Save fire detection image with bounding boxes"""
+    """Save fire detection image with bounding boxes and send email alert"""
     try:
         # Draw boxes on the frame
         for box in boxes:
@@ -74,6 +157,10 @@ def save_fire_detection_image(frame, boxes, source_label=""):
         # Save image
         cv2.imwrite(filepath, frame)
         print(f"Saved fire detection image: {filename}")
+        
+        # Send email alert with cooldown
+        send_fire_alert_email(filepath, source_label if source_label else "Unknown")
+        
     except Exception as e:
         print(f"Error saving fire image: {e}")
 
