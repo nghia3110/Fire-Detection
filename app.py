@@ -4,7 +4,6 @@ import os
 import cv2
 from werkzeug.utils import secure_filename
 import threading
-import winsound
 import time
 from datetime import datetime, timedelta
 import smtplib
@@ -239,7 +238,6 @@ def process_video(filepath, filename):
             print(f"Frame {frame_count}: {len(results[0].boxes)} fire(s) detected!")
             detections_count += 1
             last_boxes = [(box, frames_to_keep) for box in results[0].boxes]
-            winsound.Beep(2000, 200)
             
             # Save fire detection image every 10 frames
             frame_save_counter += 1
@@ -299,7 +297,6 @@ def process_webcam():
         return False
     
     print("Webcam detection started.")
-    
     frame_count = 0
     frame_save_counter = 0
     last_boxes = []
@@ -319,7 +316,6 @@ def process_webcam():
         if has_fire:
             print(f"Webcam Frame {frame_count}: {len(results[0].boxes)} fire(s) detected!")
             last_boxes = [(box, frames_to_keep) for box in results[0].boxes]
-            winsound.Beep(2000, 200)
             
             # Save fire detection image every 10 frames
             frame_save_counter += 1
@@ -390,7 +386,6 @@ def process_ip_camera_single(ip_address):
         if has_fire:
             print(f"IP Camera Frame {frame_count}: {len(results[0].boxes)} fire(s) detected!")
             last_boxes = [(box, frames_to_keep) for box in results[0].boxes]
-            winsound.Beep(2000, 200)
             
             # Save fire detection image every 10 frames
             frame_save_counter += 1
@@ -474,13 +469,6 @@ def process_multi_ip_camera(camera_id, ip_address):
         if has_fire:
             print(f"Camera {camera_id} - Frame {frame_count}: {len(results[0].boxes)} fire(s) detected!")
             last_boxes = [(box, frames_to_keep) for box in results[0].boxes]
-            
-            # Play warning sound (limit frequency to avoid spam)
-            if frame_count % 10 == 0:
-                try:
-                    winsound.Beep(2000, 100)  # Shorter beep for multi-camera
-                except:
-                    pass
             
             # Save fire detection image every 10 frames
             frame_save_counter += 1
