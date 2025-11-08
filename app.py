@@ -765,5 +765,7 @@ def delete_fire_image(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True, threaded=True)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
