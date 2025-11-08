@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Phát Hiện Lũ Lụt - Sắp Ra Mắt</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 80px 60px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            display: inline-block;
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(48, 207, 208, 0.4);
+        }
+
+        p {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .features {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: left;
+        }
+
+        .features h3 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 12px 0;
+            color: #555;
+            font-size: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+
+        .features li:before {
+            content: "🌊 ";
+            margin-right: 10px;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .timeline {
+            margin: 30px 0;
+            color: #888;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 60px 30px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .icon {
+                font-size: 80px;
+            }
+
+            p {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>    <div class="container">
+        <div class="icon">🌊</div>
+        <h1>Phát Hiện Lũ Lụt</h1>
+        <div class="status">⏳ Sắp Ra Mắt</div>
+        
+        <p>Chúng tôi đang nỗ lực để mang đến cho bạn khả năng phát hiện lũ lụt tiên tiến được hỗ trợ bởi AI và thị giác máy tính.</p>
+
+        <div class="features">
+            <h3>🎯 Tính Năng Dự Kiến</h3>
+            <ul>
+                <li>Phát hiện lũ lụt theo thời gian thực từ luồng video</li>
+                <li>Giám sát mức nước và cảnh báo</li>
+                <li>Phân tích dữ liệu lũ lụt lịch sử</li>
+                <li>Hỗ trợ nhiều camera</li>
+                <li>Thông báo khẩn cấp tự động</li>
+                <li>Tích hợp với dữ liệu thời tiết</li>
+            </ul>
+        </div>
+
+        <div class="timeline">
+            <p><strong>Dự Kiến Ra Mắt:</strong> Quý 1/2026</p>
+        </div>
+
+        <p>Hãy theo dõi để cập nhật! Trong khi đó, hãy thử hệ thống Phát Hiện Cháy của chúng tôi.</p>
+
+        <a href="/" class="back-button">← Quay Lại Trang Chủ</a>
+    </div>
+</body>
+</html>
