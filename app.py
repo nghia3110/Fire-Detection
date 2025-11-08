@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, Response
 from ultralytics import YOLO
 import os
 import cv2
+import numpy as np
 from werkzeug.utils import secure_filename
 import threading
 import time
