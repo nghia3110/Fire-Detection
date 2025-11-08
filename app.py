@@ -554,23 +554,75 @@ def detect():
     else:
         return jsonify({'error': 'Invalid file type. Please upload a video file (mp4, avi, mov, mkv, webm)'}), 400
 
-@app.route('/detect_webcam', methods=['POST'])
-def detect_webcam():
-    global is_detecting
-    
-    # Check if webcam is available first
-    test_cap = cv2.VideoCapture(0)
-    if not test_cap.isOpened():
-        test_cap.release()
-        return jsonify({'error': 'Không thể truy cập webcam. Vui lòng kiểm tra kết nối webcam của bạn.'}), 400
-    test_cap.release()
-    
-    # Start webcam processing in a separate thread
-    thread = threading.Thread(target=process_webcam)
-    thread.daemon = True
-    thread.start()
-    
-    return jsonify({'message': 'Phát hiện webcam đã bắt đầu! Đang stream video bên dưới.'})
+@app.route('/detect_webcam_live', methods=['POST'])
+def detect_webcam_live():
+    """Process webcam frame from browser (Blob/File upload) - OPTIMIZED for continuous streaming"""
+    try:
+        # Get image from multipart form data (blob upload)
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image file received'}), 400
+        
+        file = request.files['image']
+        
+        # Read file bytes directly
+        img_bytes = file.read()
+        nparr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        if frame is None:
+            return jsonify({'error': 'Invalid image data'}), 400
+        
+        # Resize for faster processing if needed
+        height, width = frame.shape[:2]
+        if width > 640 or height > 480:
+            frame = cv2.resize(frame, (640, 480))
+        
+        # Run detection with optimized settings
+        results = model.predict(
+            source=frame, 
+            imgsz=640, 
+            conf=0.3, 
+            verbose=False,
+            device='cpu'  # Change to '0' for GPU
+        )
+        has_fire = len(results[0].boxes) > 0
+        
+        fire_detections = []
+        
+        if has_fire:
+            # Collect detection info (don't draw, let frontend draw)
+            for box in results[0].boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                conf = float(box.conf[0])
+                
+                fire_detections.append({
+                    'bbox': [x1, y1, x2, y2],
+                    'confidence': conf
+                })
+            
+            # Save image occasionally (1% chance to avoid I/O overload)
+            import random
+            if random.randint(1, 100) == 1:
+                def save_async():
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                    filename = f"fire_webcam_live_{timestamp}.jpg"
+                    filepath = os.path.join(FIRE_IMAGES_FOLDER, filename)
+                    cv2.imwrite(filepath, frame)
+                    print(f"Saved fire detection image: {filename}")
+                    send_fire_alert_email(filepath, "webcam_live")
+                
+                threading.Thread(target=save_async, daemon=True).start()
+        
+        return jsonify({
+            'has_fire': has_fire,
+            'detections': fire_detections
+        })
+        
+    except Exception as e:
+        print(f"Error processing webcam frame: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/detect_ip_camera', methods=['POST'])
 def detect_ip_camera():
